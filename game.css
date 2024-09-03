@@ -1,0 +1,112 @@
+body {
+    background-color: #121212;
+    color: #00ff99;
+    font-family: 'Press Start 2P', cursive;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+h1 {
+    font-size: 24px;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #ff00ff;
+}
+
+.game-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.board {
+    
+    display: grid;
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.cell {
+    background-color: #1f1f1f;
+    border: 3px solid #ff00ff;
+    font-size: 36px;
+    color: #00ff99;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.cell.x {
+    color: #ff00ff; /* X color */
+}
+
+.cell.o {
+    color: #00ff99; /* O color */
+}
+
+.cell:hover {
+    background-color: #333333;
+}
+
+.status {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+button {
+    background-color: #ff00ff;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.ai-mode .cell {
+    background-color: #090942; /* Blue color for AI mode */
+}
+
+button:hover {
+    background-color: #cc00cc;
+}
+
+.cell.winning-combination {
+    background-color: #ffffff; /* Background color for the winning combination */
+    color: #000000; /* Optional: Change text color for better contrast */
+}
+
+.game-mode {
+    
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.mode-button {
+    background-color: #ff00ff;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    margin: 5px;
+    transition: background-color 0.3s;
+}
+
+.mode-button:hover {
+    background-color: #cc00cc;
+}
+
+
+
