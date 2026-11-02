@@ -16,49 +16,53 @@ const WINNING_COMBINATIONS = [
     [2, 4, 6]
 ];
 
-let circleTurn;
+let circleTurn = false;
 let gameActive = true;
 let isAIMode = false;
-let aiDifficulty = 'basic';  
+let aiDifficulty = 'basic'; // 'basic', 'intelligent', or 'master'
 
+function setActiveMode(buttonId) {
+    document.querySelectorAll('.mode-button').forEach(btn => btn.classList.remove('active'));
+    const btn = document.getElementById(buttonId);
+    if (btn) btn.classList.add('active');
+}
+
+// Mode selection buttons
 document.getElementById('playerVsPlayer').addEventListener('click', () => {
     isAIMode = false;
-    board.classList.remove('ai-mode'); 
+    board.classList.remove('ai-mode', 'intelligent-ai-mode', 'master-ai-mode');
+    setActiveMode('playerVsPlayer');
     startGame();
 });
 
 document.getElementById('playerVsBasicAI').addEventListener('click', () => {
     isAIMode = true;
-    aiDifficulty = 'basic'; // Set AI difficulty to basic
+    aiDifficulty = 'basic';
+    board.classList.remove('intelligent-ai-mode', 'master-ai-mode');
     board.classList.add('ai-mode');
+    setActiveMode('playerVsBasicAI');
     startGame();
 });
 
 document.getElementById('playerVsIntelligentAI').addEventListener('click', () => {
     isAIMode = true;
-    aiDifficulty = 'intelligent'; // Set AI difficulty to intelligent
-    board.classList.add('ai-mode');
+    aiDifficulty = 'intelligent';
+    board.classList.remove('master-ai-mode');
+    board.classList.add('ai-mode', 'intelligent-ai-mode');
+    setActiveMode('playerVsIntelligentAI');
     startGame();
 });
 
-startGame();
+document.getElementById('playerVsMasterAI').addEventListener('click', () => {
+    isAIMode = true;
+    aiDifficulty = 'master';
+    board.classList.remove('intelligent-ai-mode');
+    board.classList.add('ai-mode', 'master-ai-mode');
+    setActiveMode('playerVsMasterAI');
+    startGame();
+});
 
 restartButton.addEventListener('click', startGame);
-
-function highlightWinningCombination() {
-    const winningCombination = WINNING_COMBINATIONS.find(combination => {
-        return combination.every(index => {
-            return cells[index].classList.contains(circleTurn ? O_CLASS : X_CLASS);
-        });
-    });
-
-    if (winningCombination) {
-        winningCombination.forEach(index => {
-            cells[index].classList.add('winning-combination');
-        });
-    }
-}
-
 
 function startGame() {
     circleTurn = false;
@@ -67,7 +71,7 @@ function startGame() {
         cell.classList.remove(X_CLASS);
         cell.classList.remove(O_CLASS);
         cell.classList.remove('winning-combination');
-        cell.textContent = ''; // Clear previous marks
+        cell.textContent = '';
         cell.removeEventListener('click', handleClick);
         cell.addEventListener('click', handleClick, { once: true });
     });
@@ -75,7 +79,41 @@ function startGame() {
     statusMessage.textContent = "Player X's turn";
 }
 
+function handleClick(e) {
+    // Prevent human clicks when game is over or when waiting for AI's move
+    if (!gameActive || (isAIMode && circleTurn)) return;
 
+    const cell = e.target;
+    if (cell.classList.contains(X_CLASS) || cell.classList.contains(O_CLASS)) return;
+
+    const currentClass = circleTurn ? O_CLASS : X_CLASS;
+    placeMark(cell, currentClass);
+
+    if (checkWin(currentClass)) {
+        endGame(false, currentClass);
+    } else if (isDraw()) {
+        endGame(true);
+    } else {
+        swapTurns();
+        setBoardHoverClass();
+
+        if (isAIMode && circleTurn) {
+            triggerAIMove();
+        }
+    }
+}
+
+function triggerAIMove() {
+    if (aiDifficulty === 'basic') {
+        makeBasicAIMove();
+    } else if (aiDifficulty === 'intelligent') {
+        makeIntelligentAIMove();
+    } else if (aiDifficulty === 'master') {
+        makeMasterAIMove();
+    }
+}
+
+// 1. Easy Bot: picks any available cell at random
 function makeBasicAIMove() {
     const availableCells = [...cells].filter(cell => {
         return !cell.classList.contains(X_CLASS) && !cell.classList.contains(O_CLASS);
@@ -83,51 +121,33 @@ function makeBasicAIMove() {
 
     if (availableCells.length > 0) {
         setTimeout(() => {
-        const randomCell = availableCells[Math.floor(Math.random() * availableCells.length)];
-        placeMark(randomCell, O_CLASS);
-
-        if (checkWin(O_CLASS)) {
-            endGame(false);
-        } else if (isDraw()) {
-            endGame(true);
-        } else {
-            swapTurns();
-            setBoardHoverClass();
-        }
-    }, 400);
+            if (!gameActive) return;
+            const randomCell = availableCells[Math.floor(Math.random() * availableCells.length)];
+            executeAIMove(randomCell);
+        }, 400);
     }
 }
 
+// 2. Smart Bot: heuristic strategy (win > block > take center > random)
 function makeIntelligentAIMove() {
     const availableCells = [...cells].filter(cell => {
         return !cell.classList.contains(X_CLASS) && !cell.classList.contains(O_CLASS);
     });
 
     if (availableCells.length > 0) {
-        // Simple intelligent AI: Block winning moves or make strategic moves
-        const bestMove = findBestMove();
+        const bestMove = findHeuristicMove();
         setTimeout(() => {
-            placeMark(bestMove, O_CLASS);
-
-            if (checkWin(O_CLASS)) {
-                endGame(false);
-            } else if (isDraw()) {
-                endGame(true);
-            } else {
-                swapTurns();
-                setBoardHoverClass();
-            }
-        }, 400); // 1 second delay
+            if (!gameActive) return;
+            executeAIMove(bestMove);
+        }, 400);
     }
 }
 
-function findBestMove() {
-    // Implement a simple AI strategy here
-    // Example strategy: Block opponent's winning move or take the center if available
+function findHeuristicMove() {
     const opponentClass = X_CLASS;
     const aiClass = O_CLASS;
 
-    // Check if AI can win
+    // Check if AI can win immediately
     for (const combination of WINNING_COMBINATIONS) {
         const cellsToCheck = combination.map(index => cells[index]);
         const aiCells = cellsToCheck.filter(cell => cell.classList.contains(aiClass));
@@ -153,60 +173,117 @@ function findBestMove() {
     const centerCell = cells[4];
     if (!centerCell.classList.contains(X_CLASS) && !centerCell.classList.contains(O_CLASS)) {
         return centerCell;
-    }else makeBasicAIMove()
+    }
 
-    // Otherwise, take a random move
+    // Otherwise pick a random available cell
+    const availableCells = [...cells].filter(cell => {
+        return !cell.classList.contains(X_CLASS) && !cell.classList.contains(O_CLASS);
+    });
     return availableCells[Math.floor(Math.random() * availableCells.length)];
 }
 
+// 3. Master Bot: Minimax algorithm (optimal play, actively builds winning combinations & traps)
+function makeMasterAIMove() {
+    const availableCells = [...cells].filter(cell => {
+        return !cell.classList.contains(X_CLASS) && !cell.classList.contains(O_CLASS);
+    });
 
-function handleClick(e) {
-    if (!gameActive) return; 
+    if (availableCells.length > 0) {
+        const boardState = getBoardState();
+        const bestMove = minimax(boardState, 0, true);
+        const bestCell = cells[bestMove.index];
 
-    const cell = e.target;
-    const currentClass = circleTurn ? O_CLASS : X_CLASS;
-    placeMark(cell, currentClass);
-    if (checkWin(currentClass)) {
-        endGame(false);
+        setTimeout(() => {
+            if (!gameActive) return;
+            executeAIMove(bestCell);
+        }, 400);
+    }
+}
+
+function executeAIMove(cell) {
+    placeMark(cell, O_CLASS);
+
+    if (checkWin(O_CLASS)) {
+        endGame(false, O_CLASS);
     } else if (isDraw()) {
         endGame(true);
     } else {
         swapTurns();
         setBoardHoverClass();
-
-        if (isAIMode && circleTurn) {
-            if (aiDifficulty === 'basic') {
-
-                makeBasicAIMove(); // Basic AI move
-
-            } else if (aiDifficulty === 'intelligent') {
-
-                makeIntelligentAIMove(); // Intelligent AI move
-            }
-
-        } 
     }
 }
 
-function endGame(draw) {
-    gameActive = false; 
-    if (draw) {
-        statusMessage.textContent = "Draw!";
-    } else {
-        statusMessage.textContent = `${circleTurn ? "Player O" : "Player X"} Wins!`;
-    }
-    highlightWinningCombination() 
-}
-
-function isDraw() {
-    return [...cells].every(cell => {
-        return cell.classList.contains(X_CLASS) || cell.classList.contains(O_CLASS);
+function getBoardState() {
+    return Array.from(cells).map(cell => {
+        if (cell.classList.contains(X_CLASS)) return X_CLASS;
+        if (cell.classList.contains(O_CLASS)) return O_CLASS;
+        return null;
     });
+}
+
+function checkWinnerOnBoard(boardState, player) {
+    return WINNING_COMBINATIONS.some(combination => {
+        return combination.every(index => boardState[index] === player);
+    });
+}
+
+function getAvailableIndices(boardState) {
+    const indices = [];
+    boardState.forEach((val, idx) => {
+        if (val === null) indices.push(idx);
+    });
+    return indices;
+}
+
+function minimax(boardState, depth, isMaximizing) {
+    if (checkWinnerOnBoard(boardState, O_CLASS)) {
+        return { score: 10 - depth };
+    }
+    if (checkWinnerOnBoard(boardState, X_CLASS)) {
+        return { score: depth - 10 };
+    }
+
+    const availableMoves = getAvailableIndices(boardState);
+    if (availableMoves.length === 0) {
+        return { score: 0 };
+    }
+
+    if (isMaximizing) {
+        let maxScore = -Infinity;
+        let bestIndex = availableMoves[0];
+
+        for (const move of availableMoves) {
+            boardState[move] = O_CLASS;
+            const result = minimax(boardState, depth + 1, false);
+            boardState[move] = null;
+
+            if (result.score > maxScore) {
+                maxScore = result.score;
+                bestIndex = move;
+            }
+        }
+        return { score: maxScore, index: bestIndex };
+    } else {
+        let minScore = Infinity;
+        let bestIndex = availableMoves[0];
+
+        for (const move of availableMoves) {
+            boardState[move] = X_CLASS;
+            const result = minimax(boardState, depth + 1, true);
+            boardState[move] = null;
+
+            if (result.score < minScore) {
+                minScore = result.score;
+                bestIndex = move;
+            }
+        }
+        return { score: minScore, index: bestIndex };
+    }
 }
 
 function placeMark(cell, currentClass) {
     cell.classList.add(currentClass);
-    cell.textContent = currentClass.toUpperCase(); // Display X or O
+    cell.textContent = currentClass.toUpperCase();
 }
 
 function swapTurns() {
@@ -231,3 +308,37 @@ function checkWin(currentClass) {
         });
     });
 }
+
+function highlightWinningCombination(winningClass) {
+    const winningCombination = WINNING_COMBINATIONS.find(combination => {
+        return combination.every(index => {
+            return cells[index].classList.contains(winningClass);
+        });
+    });
+
+    if (winningCombination) {
+        winningCombination.forEach(index => {
+            cells[index].classList.add('winning-combination');
+        });
+    }
+}
+
+function endGame(draw, winningClass) {
+    gameActive = false;
+    if (draw) {
+        statusMessage.textContent = "Draw!";
+    } else {
+        statusMessage.textContent = `${winningClass === O_CLASS ? "Player O" : "Player X"} Wins!`;
+        highlightWinningCombination(winningClass);
+    }
+}
+
+function isDraw() {
+    return [...cells].every(cell => {
+        return cell.classList.contains(X_CLASS) || cell.classList.contains(O_CLASS);
+    });
+}
+
+// Initial setup
+setActiveMode('playerVsPlayer');
+startGame();

@@ -25,7 +25,6 @@ h1 {
 }
 
 .board {
-    
     display: grid;
     grid-template-columns: repeat(3, 100px);
     grid-template-rows: repeat(3, 100px);
@@ -45,6 +44,7 @@ h1 {
     cursor: pointer;
     transition: background-color 0.3s;
 }
+
 .cell.x {
     color: #ff00ff; /* X color */
 }
@@ -72,8 +72,17 @@ button {
     cursor: pointer;
     transition: background-color 0.3s;
 }
+
 .ai-mode .cell {
     background-color: #090942; /* Blue color for AI mode */
+}
+
+.intelligent-ai-mode .cell {
+    background-color: #77018c; /* Purple color for Smart Bot mode */
+}
+
+.master-ai-mode .cell {
+    background-color: #52031a; /* Dark crimson for Master Bot mode */
 }
 
 button:hover {
@@ -82,11 +91,10 @@ button:hover {
 
 .cell.winning-combination {
     background-color: #ffffff; /* Background color for the winning combination */
-    color: #000000; /* Optional: Change text color for better contrast */
+    color: #000000; /* Text color for contrast */
 }
 
 .game-mode {
-    
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
@@ -96,17 +104,22 @@ button:hover {
 .mode-button {
     background-color: #ff00ff;
     color: #ffffff;
-    border: none;
-    padding: 10px 20px;
-    font-size: 16px;
+    border: 2px solid transparent;
+    padding: 10px 16px;
+    font-size: 14px;
     cursor: pointer;
     margin: 5px;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s, border-color 0.3s;
+    font-family: inherit;
 }
 
 .mode-button:hover {
     background-color: #cc00cc;
 }
 
-
-
+.mode-button.active {
+    background-color: #00ff99;
+    color: #121212;
+    border-color: #ffffff;
+    font-weight: bold;
+}

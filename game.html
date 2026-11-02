@@ -4,15 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tic-Tac-Toe</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="game.css">
 </head>
 <body>
     <div class="game-container">
-        <h1>Tic-Tac-Toe</h1>
+        <h1>Lets play Tic-Tac-Toe</h1>
         <div class="game-mode">
-            <button id="playerVsPlayer" class="mode-button">Player vs Player</button>
-            <button id="playerVsBasicAI" class="mode-button">Player vs AI</button>
-            <button id="playerVsIntelligentAI" class="mode-button">Player vs Intelligent AI</button>
+            <button id="playerVsPlayer" class="mode-button"> Two Players </button>
+            <button id="playerVsBasicAI" class="mode-button"> Easy Bot </button>
+            <button id="playerVsIntelligentAI" class="mode-button"> Smart Bot </button>
+            <button id="playerVsMasterAI" class="mode-button"> Master Bot </button>
         </div>
         <div class="board" id="board">
             <div class="cell" data-cell></div>
@@ -27,7 +31,6 @@
         </div>
         <div class="status" id="statusMessage"></div>
         <button id="restartButton">Restart Game</button>
-        
     </div>
     <script src="game.js"></script>
 </body>
